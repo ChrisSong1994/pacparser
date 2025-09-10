@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "nodenext",
+    "lib": ["ESNext", "dom", "dom.iterable"],
+    "moduleResolution": "nodenext",
+    "declaration": true, // 启用类型声明文件的生成
+    "rootDir": "src",
+    "outDir": "lib",
+    "useDefineForClassFields": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["vitest/globals"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "tsc-alias": {
+    "resolveFullPaths": true
+  },
+  "include": ["src/**/*", "package.json", "tests/**/*"],
+  "exclude": ["node_modules", "./lib/**/*"]
+}

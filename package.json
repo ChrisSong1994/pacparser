@@ -1,0 +1,49 @@
+{
+  "name": "pacparser",
+  "version": "0.0.1",
+  "keywords": [
+    "pac",
+    "pacparser",
+    "proxy",
+    "pac-proxy-agent"
+  ],
+  "description": "A library to parse proxy auto-config (PAC) files in JavaScript.",
+  "main": "./lib/index.js",
+  "files": [
+    "lib"
+  ],
+  "bin": {
+    "pacparser": "./lib/index.js",
+    "pap": "./lib/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "tsc --sourceMap -w",
+    "build": "npm run clean && tsc  && tsc-alias",
+    "clean": "rimraf lib",
+    "prettier": "prettier --write 'src/**/*.ts'",
+    "pub": "npm publish --access=public",
+    "pub:beta": "npm publish --access=public --tag=beta",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "type": "module",
+  "author": "ChrisSong1994 <https://github.com/ChrisSong1994>",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ChrisSong1994/pacparser.git"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "commander": "^14.0.0",
+    "ky": "^1.10.0"
+  },
+  "license": "MIT",
+  "packageManager": "pnpm@10.12.3"
+}
