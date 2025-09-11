@@ -7,6 +7,9 @@ export default defineConfig(() => {
     test: {
       testTimeout: 20000, //  20s for pingpang
       include: TEST_INCLUDES,
+      coverage: {
+        include: ["src/**"],
+      },
     },
     resolve: {
       alias: {
