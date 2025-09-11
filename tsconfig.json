@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "nodenext",
+    "module": "esnext",
     "lib": ["ESNext", "dom", "dom.iterable"],
-    "moduleResolution": "nodenext",
+    "moduleResolution": "node",
     "declaration": true, // 启用类型声明文件的生成
     "rootDir": "src",
     "outDir": "lib",
@@ -19,6 +19,6 @@
   "tsc-alias": {
     "resolveFullPaths": true
   },
-  "include": ["src/**/*", "package.json", "tests/**/*"],
+  "include": ["src/**/*", "package.json"],
   "exclude": ["node_modules", "./lib/**/*"]
 }
