@@ -28,6 +28,7 @@
     "prettier": "prettier --write 'src/**/*.ts'",
     "pub": "npm publish --access=public",
     "pub:beta": "npm publish --access=public --tag=beta",
+    "website": "serve ./website",
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },
@@ -42,6 +43,7 @@
     "@vitest/coverage-v8": "3.2.4",
     "concurrently": "^9.2.1",
     "prettier": "^3.6.2",
+    "serve": "^14.2.5",
     "tsc-alias": "^1.8.16",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
