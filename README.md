@@ -51,10 +51,25 @@ await pacParser.findProxy("https://direct.mozilla.org"); // returns "DIRECT"
 
 You can use pacparser as a cli tool to parse pac file.
 
-```bash
-pacparser exec --pac './proxy.pac' --findproxy https://www.google.com
+```bash 
+pacparser exec --pac './proxy.pac' --findproxy https://www.google.com # DIRECT
 # Or use shortcut command
-pap exec -p './proxy.pac' -f https://www.google.com
+pap exec -p './proxy.pac' -f https://www.google.com # DIRECT
+
+pap exec -p  'function FindProxyForURL(url, host) {
+  if (
+    (isPlainHostName(host) || dnsDomainIs(host, ".mozilla.org")) &&
+    !localHostOrDomainIs(host, "www.mozilla.org") &&
+    !localHostOrDomainIs(host, "merchant.mozilla.org") &&
+    !localHostOrDomainIs(host, "www.google.com")
+  ) {
+    return "DIRECT";
+  } else {
+    return "PROXY w3proxy.mozilla.org:8080; DIRECT";
+  }
+}' -f https://www.google.com  # PROXY w3proxy.mozilla.org:8080; DIRECT
+
+pap exec -p  http://localhost:3000/proxy.pac -f https://www.google.com  # DIRECT
 ```
 
 ### `pacparser builtin functions`
@@ -62,7 +77,7 @@ pap exec -p './proxy.pac' -f https://www.google.com
 ```bash
 pap builtin -f isPlainHostName -i www.google.com  # false
 pap builtin -f isResolvable -i www.google.com  # true
-pap builtin -f isInNet -i www.google.com 192.168.1.0 255.255.255.0 # false
+pap builtin -f isInNet -i www.google.com,192.168.1.0,255.255.255.0 # false
 pap builtin -f isInNet -i "192.168.1.1","192.168.1.0","255.255.255.0" # true
 pap builtin -f myIpAddress  # 192.168.1.65
 ```
