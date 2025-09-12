@@ -7,7 +7,8 @@ It run pac script in a Node.js vm and execute findProxy method.
 ## Installation
 
 ```bash
-npm install pacparser
+npm install pacparser # use in node.js
+npm install pacparser -g # use as a command line tool
 ```
 
 ## Usage
@@ -44,13 +45,35 @@ await pacParser.findProxy(url); // return a promise
 await pacParser.findProxy("https://direct.mozilla.org"); // returns "DIRECT"
 ```
 
+## CLI
+
+### `pacparser exec`
+
+You can use pacparser as a cli tool to parse pac file.
+
+```bash
+pacparser exec --pac './proxy.pac' --findproxy https://www.google.com
+# Or use shortcut command
+pap exec -p './proxy.pac' -f https://www.google.com
+```
+
+### `pacparser builtin functions`
+
+```bash
+pap builtin -f isPlainHostName -i www.google.com  # false
+pap builtin -f isResolvable -i www.google.com  # true
+pap builtin -f isInNet -i www.google.com 192.168.1.0 255.255.255.0 # false
+pap builtin -f isInNet -i "192.168.1.1","192.168.1.0","255.255.255.0" # true
+pap builtin -f myIpAddress  # 192.168.1.65
+```
+
 ## API
 
 ### `Pacparser`
 
 The main class.
 
-### _`static`_ `Pacparser.create(path?string)`
+### `static` `Pacparser.create(path?string)`
 
 Create a new instance of Pacparser.
 
@@ -60,6 +83,7 @@ switch pac source (filepath or url or pac script) by call parsePac() in pacParse
 it return the pacparser instance, so you can chain call.
 
 ```js
+const pacParser = Pacparser.create();
 pacParser.parsePac(path.join(__dirname, "./proxy.pac")).findProxy("https://direct.mozilla.org");
 ```
 
@@ -82,6 +106,41 @@ Get pac code in pacparser instance
 ### `pacparser.reload()`
 
 If pac source is changed,it will reload pac source
+
+## Builtin functions
+
+Pacparser provides some builtin functions to help you write your pac script.
+you can read more about them in [Proxy Auto-Configuration (PAC) file](<[builtin.js](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file#predefined_functions_and_environment)>)
+
+```javascript
+import {
+  isPlainHostName,
+  dnsDomainIs,
+  localHostOrDomainIs,
+  isResolvable,
+  isInNet,
+  dnsResolve,
+  convert_addr,
+  myIpAddress,
+  shExpMatch,
+  dnsDomainLevels,
+  weekdayRange,
+  dateRange,
+  timeRange,
+  alter,
+} from "pacparser";
+
+isPlainHostName("www.mozilla.org"); // false
+isPlainHostName("www"); // true
+dnsDomainIs("www.mozilla.org", ".mozilla.org") // true
+localHostOrDomainIs("www.mozilla.org", "www.mozilla.org") // true (exact match)
+isResolvable("www.mozilla.org") // true
+dateRange(1, "JUN", 1995, 15, "AUG", 1995);
+isInNet("192.168.1.1", "192.168.1.0", "255.255.255.0")
+convert_addr("192.0.2.172"); // returns the decimal number 1745889538
+dnsDomainLevels("www.mozilla.org"); // 2
+...
+```
 
 ## License
 

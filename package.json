@@ -1,6 +1,6 @@
 {
   "name": "pacparser",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "keywords": [
     "pac",
     "pacparser",
@@ -10,6 +10,10 @@
   "description": "A library to parse proxy auto-config (PAC) files in JavaScript.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
+  "bin": {
+    "pacparser": "./lib/bin/index.js",
+    "pap": "./lib/bin/index.js"
+  },
   "files": [
     "lib"
   ],
@@ -19,6 +23,7 @@
   "scripts": {
     "dev": "npm run clean && concurrently --kill-others \"tsc --sourceMap -w\" \"tsc-alias -w\"",
     "build": "npm run clean && tsc  && tsc-alias",
+    "cli": "node ./lib/bin/index.js",
     "clean": "rimraf lib",
     "prettier": "prettier --write 'src/**/*.ts'",
     "pub": "npm publish --access=public",

@@ -14,6 +14,5 @@ export function isInNet(ip: string, pattern: string, maskstr: string) {
   const host = convert_addr(ip);
   const pat = convert_addr(pattern);
   const mask = convert_addr(maskstr);
-  console.log(host, pat, mask);
   return (host & mask) == (pat & mask);
 }
