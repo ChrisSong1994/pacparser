@@ -2,7 +2,7 @@
 
 A library to parse proxy auto-config (PAC) files in Node.js.
 
-It run pac script in a Node.js vm and execute findProxyForURL method.
+It run pac script in a Node.js vm and execute findProxy method.
 
 ## Installation
 
@@ -16,7 +16,7 @@ npm install pacparser
 import Pacparser from "pacparser";
 const pacParser = new Pacparser();
 pacParser.loadPacFile(path.join(__dirname, "./proxy.pac"));
-pacParser.findProxyForURL("https://direct.mozilla.org"); // returns "DIRECT"
+pacParser.findProxy("https://direct.mozilla.org"); // returns "DIRECT"
 ```
 
 ## API
@@ -37,7 +37,7 @@ Load a PAC script.
 
 Load a PAC script from a URL. And returns a promise .
 
-### `pacparser.findProxyForURL(url)`
+### `pacparser.findProxy(url)`
 
 Find the proxy for a given URL.
 

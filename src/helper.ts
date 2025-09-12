@@ -1,4 +1,5 @@
 import dns from "dns";
+import fs from "node:fs/promises";
 import deasync from "deasync";
 import { GMT } from "./types";
 import { IP_REGEXP } from "./constants";
@@ -47,10 +48,50 @@ export function isGMT(v?: string): v is GMT {
   return v === "GMT";
 }
 
-
 /**
  * is http url
-*/
+ */
 export function isHttpUrl(url: string) {
   return /^https?:\/\//.test(url);
+}
+
+export function isWinPath(path: string) {
+  return /^(?<ParentPath>(?:[a-zA-Z]\:|\\\\[\w\s\.]+\\[\w\s\.$]+)\\(?:[\w\s\.]+\\)*)(?<BaseName>[\w\s\.]*?)$/.test(
+    path
+  );
+}
+
+export function isUnixPath(path: string) {
+  return /^(.+)\/([^\/]+)$/.test(path);
+}
+
+/**
+ * is local path
+ */
+export function isFilePath(path: string) {
+  return isWinPath(path) || isUnixPath(path);
+}
+
+/**
+ * is  pac code
+ * */
+export function isPacCode(code: string) {
+  const reg = /function\s+FindProxyForURL\s*\(\s*[^)]*\s*\)\s*\{/;
+  return reg.test(code);
+}
+
+/**
+ * load pac file
+ */
+export async function loadPacFile(pacPath: string) {
+  const pac = await fs.readFile(pacPath, { encoding: "utf-8" });
+  return pac;
+}
+
+/**
+ * load pac url
+ */
+export async function loadPacUrl(url: string) {
+  const pac = await fetch(url).then((res) => res.text());
+  return pac;
 }

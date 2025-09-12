@@ -17,16 +17,24 @@ import {
   timeRange,
   alter,
 } from "./builtins";
-import { isHttpUrl } from "./helper";
+import { isHttpUrl, isFilePath, isPacCode, loadPacFile, loadPacUrl } from "./helper";
 
 class Pacparser {
   private sandbox: any;
   private context: any;
-  constructor() {
+  pacString: string; // parse pac code
+  pacOriginal: string; // original pac file path or pac code or url
+  private pacSourceMap = new Map(); // pac 文件路径 => pac 源代码
+  constructor(pac?: string) {
     this.sandbox = this.createSandbox();
     this.context = vm.createContext(this.sandbox);
+    this.pacOriginal = pac;
   }
 
+  static create(pac?: string) {
+    const pacparser = new Pacparser(pac);
+    return pacparser;
+  }
   /**
    * create sandbox with pac builtin functions
    */
@@ -79,31 +87,21 @@ class Pacparser {
   }
 
   /**
-   * 从本机加载 pac 文件
-   * @param {string} pacPath - PAC 文件路径
+   * 解析 PAC 脚本
    * */
-  loadPacFile(pacPath: string) {
-    const pacString = fs.readFileSync(pacPath, "utf-8");
-    this.compile(pacString);
-    return this;
-  }
-
-  /**
-   * 从 http  url 加载 pac 文件
-   */
-  async loadPacUrl(url: string) {
-    if (!isHttpUrl(url)) throw new Error("url is not http url");
-    const pacString = await fetch(url).then((res) => res.text());
-    this.compile(pacString);
-    return this;
-  }
-  /**
-   * 解析 PAC 字符串（直接传入 PAC 脚本内容）
-   * param {string} pacCode - PAC 脚本字符串
-   * */
-  loadPacString(pacString) {
-    this.compile(pacString);
-    return this;
+  async parsePac(pac: string) {
+    if (isHttpUrl(pac)) {
+      this.pacString = await loadPacUrl(pac);
+    } else if (isFilePath(pac)) {
+      this.pacString = await loadPacFile(pac);
+    } else if (isPacCode(pac)) {
+      this.pacString = pac;
+    } else {
+      throw new Error("Invalid pac code");
+    }
+    this.pacOriginal = pac;
+    this.pacSourceMap.set(pac, this.pacString);
+    this.compile(this.pacString);
   }
 
   /**
@@ -112,7 +110,15 @@ class Pacparser {
    * @param {string} [host] - 主机名（可选，默认从 URL 提取）
    * @returns {string} 代理配置（如 "PROXY proxy:port; DIRECT"）
    */
-  findProxyForURL(url: string, host?: string) {
+  async findProxy(url: string, host?: string) {
+    // if no pac
+    if (!this.pacOriginal) {
+      throw new Error("PAC script not loaded");
+    }
+    // if un parse pac
+    if (!this.pacSourceMap.has(this.pacOriginal)) {
+      await this.parsePac(this.pacOriginal);
+    }
     try {
       // 如果未提供host，从URL解析
       if (!host) {
@@ -120,7 +126,7 @@ class Pacparser {
           const urlObj = new URL(url);
           host = urlObj.hostname;
         } catch (e) {
-          throw new Error(`无效的URL: ${url}`);
+          throw new Error(`Invalid url: ${url}`);
         }
       }
 

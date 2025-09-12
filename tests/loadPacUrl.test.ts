@@ -5,7 +5,6 @@ import path from "node:path";
 import Pacparser from "../src";
 
 let server: ReturnType<typeof createServer>;
-let serverUrl: string;
 
 // 创建支持跨域的静态文件服务器
 beforeAll((done) => {
@@ -59,8 +58,15 @@ describe("pacparser pacUrl", () => {
   test("pacparser pacString", async () => {
     const pacUrl = "http://localhost:3000/proxy.pac";
     const pacParser = new Pacparser();
-    await pacParser.loadPacUrl(pacUrl);
-    console.log(pacParser.findProxyForURL("https://www.google.com"));
-    expect(pacParser.findProxyForURL("https://direct.mozilla.org")).toBe("DIRECT");
+    await pacParser.parsePac(pacUrl);
+    const proxy = await pacParser.findProxy("https://direct.mozilla.org");
+    expect(proxy).toBe("DIRECT");
+  });
+
+  test("pacparser pacString", async () => {
+    const pacUrl = "http://localhost:3000/proxy.pac";
+    const pacParser = Pacparser.create(pacUrl);
+    const proxy = await pacParser.findProxy("https://direct.mozilla.org");
+    expect(proxy).toBe("DIRECT");
   });
 });

@@ -4,19 +4,19 @@ import Pacparser from "../src";
 import { demo1 } from "./pac_demos";
 
 describe("pacparser tests", () => {
-  test("pacparser pacfile", () => {
-    const pacParser = new Pacparser();
-    pacParser.loadPacFile(path.join(__dirname, "./proxy.pac"));
-
-    expect(pacParser.findProxyForURL("https://direct.mozilla.org")).toBe("DIRECT");
+  test("pacparser pacfile", async () => {
+    const pacPath = path.join(__dirname, "./proxy.pac");
+    const pacParser = new Pacparser(pacPath);
+    const proxy = await pacParser.findProxy("https://direct.mozilla.org");
+    expect(proxy).toBe("DIRECT");
   });
 
-  test("pacparser pacString", () => {
+  test("pacparser pacString", async () => {
     const pacParser = new Pacparser();
-    pacParser.loadPacString(demo1);
-    console.log(pacParser.findProxyForURL("https://www.google.com"));
-    expect(pacParser.findProxyForURL("https://www.google.com")).toBe(
-      "PROXY w3proxy.mozilla.org:8080; DIRECT"
-    );
+    await pacParser.parsePac(demo1);
+
+    const proxy = await pacParser.findProxy("https://www.google.com");
+    console.log(proxy);
+    expect(proxy).toBe("PROXY w3proxy.mozilla.org:8080; DIRECT");
   });
 });
