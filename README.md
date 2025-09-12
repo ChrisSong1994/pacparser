@@ -125,7 +125,7 @@ If pac source is changed,it will reload pac source
 ## Builtin functions
 
 Pacparser provides some builtin functions to help you write your pac script.
-you can read more about them in [Proxy Auto-Configuration (PAC) file](<[builtin.js](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file#predefined_functions_and_environment)>)
+you can read more about them in [Proxy Auto-Configuration (PAC) file](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file#predefined_functions_and_environment)
 
 ```javascript
 import {
