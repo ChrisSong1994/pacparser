@@ -1,411 +1,471 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pacparser - PAC File Parser for Node.js</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-  <!-- 引入Prism.js用于代码高亮 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
-  
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#0969da',
-            dark: '#161b22',
-            light: '#f6f8fa',
-            muted: '#6e7681'
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pacparser - PAC File Parser for Node.js</title>
+    <meta
+      name="keywords"
+      content="pacparser, pac file parser, node.js, javascript, http proxy, proxy, pac, PAC, proxy auto-config, proxy auto-configuration, proxy auto-detect, proxy auto-detection, proxy auto-select, proxy auto-selection, proxy auto-switch, proxy auto-switching, proxy auto-detect, proxy auto-detection, proxy auto-select, proxy auto-selection, proxy auto-switch, proxy auto-switching, proxy auto-detect, proxy auto-det"
+    />
+    <meta
+      name="description"
+      content="Pacparser is a PAC file parser for Node.js. It provides a simple and easy-to-use API for parsing PAC files and getting the proxy settings for a given URL and host."
+    />
+    <link rel="icon" href="./logo.jpg" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+    <!-- 引入Prism.js用于代码高亮 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0969da",
+              dark: "#161b22",
+              light: "#f6f8fa",
+              muted: "#6e7681",
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif", "SimSun"],
+              mono: ["Fira Code", "monospace"],
+            },
           },
-          fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif', 'SimSun'],
-            mono: ['Fira Code', 'monospace']
-          }
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .text-shadow {
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .bg-gradient {
+          background: linear-gradient(135deg, #0969da 0%, #000000 100%);
+        }
+        .scroll-smooth {
+          scroll-behavior: smooth;
+        }
+        .lang-hidden {
+          display: none;
         }
       }
-    }
-  </script>
-  <style type="text/tailwindcss">
-    @layer utilities {
-      .text-shadow {
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
-      .bg-gradient {
-        background: linear-gradient(135deg, #0969da 0%, #000000 100%);
-      }
-      .scroll-smooth {
+    </style>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap");
+
+      html {
         scroll-behavior: smooth;
       }
-      .lang-hidden {
-        display: none;
+
+      .code-block {
+        position: relative;
+        margin-bottom: 1rem;
       }
-    }
-  </style>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
-    
-    html {
-      scroll-behavior: smooth;
-    }
-    
-    .code-block {
-      position: relative;
-      margin-bottom: 1rem;
-    }
-    
-    .copy-btn {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 10;
-    }
-    
-    .code-block:hover .copy-btn {
-      opacity: 1;
-    }
-    
-    /* 优化代码块样式 */
-    pre[class*="language-"] {
-      padding: 1.5rem !important;
-      border-radius: 0.5rem !important;
-      overflow-x: auto;
-      font-size: 0.875rem !important;
-      line-height: 1.5 !important;
-      margin: 0 !important;
-    }
-    
-    .nav-link {
-      position: relative;
-    }
-    
-    .nav-link::after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 2px;
-      bottom: -2px;
-      left: 0;
-      background-color: #0969da;
-      transition: width 0.3s ease;
-    }
-    
-    .nav-link:hover::after {
-      width: 100%;
-    }
-    
-    .feature-card {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .feature-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-    
-    .lang-btn {
-      transition: all 0.3s ease;
-    }
-    
-    .lang-btn.active {
-      background-color: #0969da;
-      color: white;
-    }
-  </style>
-</head>
-<body class="bg-white text-dark font-sans">
-  <!-- Header with Navigation -->
-  <header class="sticky top-0 bg-white/90 backdrop-blur-sm shadow-sm z-50">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center py-4">
-        <div class="flex items-center space-x-2">
-          <i class="fa fa-code-fork text-primary text-2xl"></i>
-          <h1 class="text-xl font-bold text-primary">
-            <span class="lang-en">Pacparser</span>
-            <span class="lang-zh lang-hidden">Pacparser</span>
-          </h1>
+
+      .copy-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+      }
+
+      .code-block:hover .copy-btn {
+        opacity: 1;
+      }
+
+      /* 优化代码块样式 */
+      pre[class*="language-"] {
+        padding: 1.5rem !important;
+        border-radius: 0.5rem !important;
+        overflow-x: auto;
+        font-size: 0.875rem !important;
+        line-height: 1.5 !important;
+        margin: 0 !important;
+      }
+
+      .nav-link {
+        position: relative;
+      }
+
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -2px;
+        left: 0;
+        background-color: #0969da;
+        transition: width 0.3s ease;
+      }
+
+      .nav-link:hover::after {
+        width: 100%;
+      }
+
+      .feature-card {
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow:
+          0 10px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+
+      .lang-btn {
+        transition: all 0.3s ease;
+      }
+
+      .lang-btn.active {
+        background-color: #0969da;
+        color: white;
+      }
+    </style>
+  </head>
+  <body class="bg-white text-dark font-sans">
+    <!-- Header with Navigation -->
+    <header class="sticky top-0 bg-white/90 backdrop-blur-sm shadow-sm z-50">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+          <div class="flex items-center space-x-2">
+            <i class="fa fa-code-fork text-primary text-2xl"></i>
+            <h1 class="text-xl font-bold text-primary">
+              <span class="lang-en">Pacparser</span>
+              <span class="lang-zh lang-hidden">Pacparser</span>
+            </h1>
+          </div>
+
+          <!-- Language switch -->
+          <div class="hidden md:flex items-center space-x-2 mr-4">
+            <button id="lang-en-btn" class="lang-btn active px-3 py-1 rounded-md text-sm">
+              English
+            </button>
+            <button id="lang-zh-btn" class="lang-btn px-3 py-1 rounded-md text-sm">中文</button>
+          </div>
+
+          <nav class="hidden md:flex space-x-8">
+            <a href="#intro" class="nav-link font-medium">
+              <span class="lang-en">Introduction</span>
+              <span class="lang-zh lang-hidden">简介</span>
+            </a>
+            <a href="#installation" class="nav-link font-medium">
+              <span class="lang-en">Installation</span>
+              <span class="lang-zh lang-hidden">安装</span>
+            </a>
+            <a href="#usage" class="nav-link font-medium">
+              <span class="lang-en">Usage</span>
+              <span class="lang-zh lang-hidden">使用方法</span>
+            </a>
+            <a href="#api" class="nav-link font-medium">
+              <span class="lang-en">API</span>
+              <span class="lang-zh lang-hidden">API文档</span>
+            </a>
+            <a href="#cli" class="nav-link font-medium">
+              <span class="lang-en">CLI</span>
+              <span class="lang-zh lang-hidden">命令行工具</span>
+            </a>
+          </nav>
+
+          <div class="flex items-center space-x-4">
+            <a
+              href="https://github.com/ChrisSong1994/pacparser"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hidden sm:flex items-center space-x-2 bg-dark text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-colors"
+            >
+              <i class="fa fa-github"></i>
+              <span class="lang-en">GitHub</span>
+              <span class="lang-zh lang-hidden">代码仓库</span>
+            </a>
+            <button class="md:hidden text-dark" id="mobile-menu-button">
+              <i class="fa fa-bars text-xl"></i>
+            </button>
+          </div>
         </div>
-        
-        <!-- Language switch -->
-        <div class="hidden md:flex items-center space-x-2 mr-4">
-          <button id="lang-en-btn" class="lang-btn active px-3 py-1 rounded-md text-sm">English</button>
-          <button id="lang-zh-btn" class="lang-btn px-3 py-1 rounded-md text-sm">中文</button>
-        </div>
-        
-        <nav class="hidden md:flex space-x-8">
-          <a href="#intro" class="nav-link font-medium">
+      </div>
+
+      <!-- Mobile menu -->
+      <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+        <div class="container mx-auto px-4 py-3 space-y-3">
+          <!-- Mobile language switch -->
+          <div class="flex items-center space-x-2 py-2">
+            <button id="mobile-lang-en-btn" class="lang-btn active px-3 py-1 rounded-md text-sm">
+              English
+            </button>
+            <button id="mobile-lang-zh-btn" class="lang-btn px-3 py-1 rounded-md text-sm">
+              中文
+            </button>
+          </div>
+
+          <a href="#intro" class="block py-2 font-medium">
             <span class="lang-en">Introduction</span>
             <span class="lang-zh lang-hidden">简介</span>
           </a>
-          <a href="#installation" class="nav-link font-medium">
+          <a href="#installation" class="block py-2 font-medium">
             <span class="lang-en">Installation</span>
             <span class="lang-zh lang-hidden">安装</span>
           </a>
-          <a href="#usage" class="nav-link font-medium">
+          <a href="#usage" class="block py-2 font-medium">
             <span class="lang-en">Usage</span>
             <span class="lang-zh lang-hidden">使用方法</span>
           </a>
-          <a href="#api" class="nav-link font-medium">
+          <a href="#api" class="block py-2 font-medium">
             <span class="lang-en">API</span>
             <span class="lang-zh lang-hidden">API文档</span>
           </a>
-          <a href="#cli" class="nav-link font-medium">
+          <a href="#cli" class="block py-2 font-medium">
             <span class="lang-en">CLI</span>
             <span class="lang-zh lang-hidden">命令行工具</span>
           </a>
-        </nav>
-        
-        <div class="flex items-center space-x-4">
-          <a href="https://github.com/ChrisSong1994/pacparser" target="_blank" rel="noopener noreferrer" 
-             class="hidden sm:flex items-center space-x-2 bg-dark text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-colors">
+          <a
+            href="https://github.com/ChrisSong1994/pacparser"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center space-x-2 text-dark py-2"
+          >
             <i class="fa fa-github"></i>
-            <span class="lang-en">GitHub</span>
-            <span class="lang-zh lang-hidden">代码仓库</span>
-          </a>
-          <button class="md:hidden text-dark" id="mobile-menu-button">
-            <i class="fa fa-bars text-xl"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Mobile menu -->
-    <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
-      <div class="container mx-auto px-4 py-3 space-y-3">
-        <!-- Mobile language switch -->
-        <div class="flex items-center space-x-2 py-2">
-          <button id="mobile-lang-en-btn" class="lang-btn active px-3 py-1 rounded-md text-sm">English</button>
-          <button id="mobile-lang-zh-btn" class="lang-btn px-3 py-1 rounded-md text-sm">中文</button>
-        </div>
-        
-        <a href="#intro" class="block py-2 font-medium">
-          <span class="lang-en">Introduction</span>
-          <span class="lang-zh lang-hidden">简介</span>
-        </a>
-        <a href="#installation" class="block py-2 font-medium">
-          <span class="lang-en">Installation</span>
-          <span class="lang-zh lang-hidden">安装</span>
-        </a>
-        <a href="#usage" class="block py-2 font-medium">
-          <span class="lang-en">Usage</span>
-          <span class="lang-zh lang-hidden">使用方法</span>
-        </a>
-        <a href="#api" class="block py-2 font-medium">
-          <span class="lang-en">API</span>
-          <span class="lang-zh lang-hidden">API文档</span>
-        </a>
-        <a href="#cli" class="block py-2 font-medium">
-          <span class="lang-en">CLI</span>
-          <span class="lang-zh lang-hidden">命令行工具</span>
-        </a>
-        <a href="https://github.com/ChrisSong1994/pacparser" target="_blank" rel="noopener noreferrer" 
-           class="flex items-center space-x-2 text-dark py-2">
-          <i class="fa fa-github"></i>
-          <span class="lang-en">GitHub Repository</span>
-          <span class="lang-zh lang-hidden">GitHub代码仓库</span>
-        </a>
-      </div>
-    </div>
-  </header>
-
-  <!-- Hero Section -->
-  <section class="bg-gradient text-white py-20">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mx-auto text-center">
-        <h1 class="text-4xl md:text-5xl font-bold mb-6 text-shadow">
-          <span class="lang-en">Pacparser</span>
-          <span class="lang-zh lang-hidden">Pacparser</span>
-        </h1>
-        <p class="text-xl md:text-2xl mb-8 opacity-90">
-          <span class="lang-en">A powerful library to parse proxy auto-config (PAC) files in Node.js</span>
-          <span class="lang-zh lang-hidden">一个强大的Node.js库，用于解析代理自动配置（PAC）文件</span>
-        </p>
-        <div class="flex flex-col sm:flex-row justify-center gap-4">
-          <a href="#installation" class="bg-white text-primary font-medium px-6 py-3 rounded-md hover:bg-opacity-90 transition-colors">
-            <span class="lang-en">Get Started</span>
-            <span class="lang-zh lang-hidden">开始使用</span>
-          </a>
-          <a href="https://github.com/ChrisSong1994/pacparser" target="_blank" rel="noopener noreferrer" 
-             class="bg-transparent border-2 border-white text-white font-medium px-6 py-3 rounded-md hover:bg-white hover:bg-opacity-10 transition-colors">
-            <span class="lang-en">View on GitHub</span>
-            <span class="lang-zh lang-hidden">在GitHub上查看</span>
+            <span class="lang-en">GitHub Repository</span>
+            <span class="lang-zh lang-hidden">GitHub代码仓库</span>
           </a>
         </div>
       </div>
-    </div>
-  </section>
+    </header>
 
-  <!-- Introduction Section -->
-  <section id="intro" class="py-16 bg-light">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mx-auto">
-        <h2 class="text-3xl font-bold mb-8 text-center">
-          <span class="lang-en">What is Pacparser?</span>
-          <span class="lang-zh lang-hidden">什么是Pacparser？</span>
-        </h2>
-        <p class="text-lg mb-6">
-          <span class="lang-en">
-            Pacparser is a Node.js library that allows you to parse and execute proxy auto-config (PAC) files. 
-            It runs PAC scripts in a secure Node.js VM environment and provides a simple API to find the appropriate 
-            proxy configuration for any given URL.
-          </span>
-          <span class="lang-zh lang-hidden">
-            Pacparser是一个Node.js库，允许您解析和执行代理自动配置（PAC）文件。
-            它在安全的Node.js VM环境中运行PAC脚本，并提供简单的API来为任何给定URL找到合适的代理配置。
-          </span>
-        </p>
-        <p class="text-lg mb-6">
-          <span class="lang-en">
-            PAC files are widely used to determine proxy settings based on URL patterns, domain names, and other criteria. 
-            Pacparser makes it easy to integrate PAC file support into your Node.js applications.
-          </span>
-          <span class="lang-zh lang-hidden">
-            PAC文件广泛用于根据URL模式、域名和其他标准确定代理设置。
-            Pacparser使将PAC文件支持集成到您的Node.js应用程序中变得容易。
-          </span>
-        </p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          <div class="feature-card bg-white p-6 rounded-lg shadow-md">
-            <div class="text-primary text-3xl mb-4">
-              <i class="fa fa-code"></i>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">
-              <span class="lang-en">Easy Integration</span>
-              <span class="lang-zh lang-hidden">易于集成</span>
-            </h3>
-            <p class="text-muted">
-              <span class="lang-en">Simple API that integrates seamlessly with your Node.js applications</span>
-              <span class="lang-zh lang-hidden">简单的API，可与您的Node.js应用程序无缝集成</span>
-            </p>
-          </div>
-          
-          <div class="feature-card bg-white p-6 rounded-lg shadow-md">
-            <div class="text-primary text-3xl mb-4">
-              <i class="fa fa-globe"></i>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">
-              <span class="lang-en">URL & File Support</span>
-              <span class="lang-zh lang-hidden">支持URL和文件</span>
-            </h3>
-            <p class="text-muted">
-              <span class="lang-en">Load PAC files from local paths or remote URLs</span>
-              <span class="lang-zh lang-hidden">从本地路径或远程URL加载PAC文件</span>
-            </p>
-          </div>
-          
-          <div class="feature-card bg-white p-6 rounded-lg shadow-md">
-            <div class="text-primary text-3xl mb-4">
-              <i class="fa fa-terminal"></i>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">
-              <span class="lang-en">CLI Included</span>
-              <span class="lang-zh lang-hidden">包含命令行工具</span>
-            </h3>
-            <p class="text-muted">
-              <span class="lang-en">Use pacparser directly from the command line</span>
-              <span class="lang-zh lang-hidden">直接从命令行使用pacparser</span>
-            </p>
+    <!-- Hero Section -->
+    <section class="bg-gradient text-white py-20">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto text-center">
+          <h1 class="text-4xl md:text-5xl font-bold mb-6 text-shadow">
+            <span class="lang-en">Pacparser</span>
+            <span class="lang-zh lang-hidden">Pacparser</span>
+          </h1>
+          <p class="text-xl md:text-2xl mb-8 opacity-90">
+            <span class="lang-en"
+              >A powerful library to parse proxy auto-config (PAC) files in Node.js</span
+            >
+            <span class="lang-zh lang-hidden"
+              >一个强大的Node.js库，用于解析代理自动配置（PAC）文件</span
+            >
+          </p>
+          <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a
+              href="#installation"
+              class="bg-white text-primary font-medium px-6 py-3 rounded-md hover:bg-opacity-90 transition-colors"
+            >
+              <span class="lang-en">Get Started</span>
+              <span class="lang-zh lang-hidden">开始使用</span>
+            </a>
+            <a
+              href="https://github.com/ChrisSong1994/pacparser"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-transparent border-2 border-white text-white font-medium px-6 py-3 rounded-md hover:bg-white hover:bg-opacity-10 transition-colors"
+            >
+              <span class="lang-en">View on GitHub</span>
+              <span class="lang-zh lang-hidden">在GitHub上查看</span>
+            </a>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Installation Section -->
-  <section id="installation" class="py-16 bg-white">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mx-auto">
-        <h2 class="text-3xl font-bold mb-8 text-center">
-          <span class="lang-en">Installation</span>
-          <span class="lang-zh lang-hidden">安装</span>
-        </h2>
-        
-        <p class="text-lg mb-6">
-          <span class="lang-en">
-            Install Pacparser using npm or pnpm. It can be used as a library in your Node.js projects or as a command-line tool.
-          </span>
-          <span class="lang-zh lang-hidden">
-            使用npm或pnpm安装Pacparser。它可以作为库在您的Node.js项目中使用，也可以作为命令行工具使用。
-          </span>
-        </p>
-        
-        <div class="code-block">
-          <button class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded" onclick="copyCode(this)">
-            <i class="fa fa-copy"></i>
-          </button>
-          <pre><code class="language-bash">npm install pacparser # Use in Node.js
+    <!-- Introduction Section -->
+    <section id="intro" class="py-16 bg-light">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto">
+          <h2 class="text-3xl font-bold mb-8 text-center">
+            <span class="lang-en">What is Pacparser?</span>
+            <span class="lang-zh lang-hidden">什么是Pacparser？</span>
+          </h2>
+          <p class="text-lg mb-6">
+            <span class="lang-en">
+              Pacparser is a Node.js library that allows you to parse and execute proxy auto-config
+              (PAC) files. It runs PAC scripts in a secure Node.js VM environment and provides a
+              simple API to find the appropriate proxy configuration for any given URL.
+            </span>
+            <span class="lang-zh lang-hidden">
+              Pacparser是一个Node.js库，允许您解析和执行代理自动配置（PAC）文件。 它在安全的Node.js
+              VM环境中运行PAC脚本，并提供简单的API来为任何给定URL找到合适的代理配置。
+            </span>
+          </p>
+          <p class="text-lg mb-6">
+            <span class="lang-en">
+              PAC files are widely used to determine proxy settings based on URL patterns, domain
+              names, and other criteria. Pacparser makes it easy to integrate PAC file support into
+              your Node.js applications.
+            </span>
+            <span class="lang-zh lang-hidden">
+              PAC文件广泛用于根据URL模式、域名和其他标准确定代理设置。
+              Pacparser使将PAC文件支持集成到您的Node.js应用程序中变得容易。
+            </span>
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            <div class="feature-card bg-white p-6 rounded-lg shadow-md">
+              <div class="text-primary text-3xl mb-4">
+                <i class="fa fa-code"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">
+                <span class="lang-en">Easy Integration</span>
+                <span class="lang-zh lang-hidden">易于集成</span>
+              </h3>
+              <p class="text-muted">
+                <span class="lang-en"
+                  >Simple API that integrates seamlessly with your Node.js applications</span
+                >
+                <span class="lang-zh lang-hidden">简单的API，可与您的Node.js应用程序无缝集成</span>
+              </p>
+            </div>
+
+            <div class="feature-card bg-white p-6 rounded-lg shadow-md">
+              <div class="text-primary text-3xl mb-4">
+                <i class="fa fa-globe"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">
+                <span class="lang-en">URL & File Support</span>
+                <span class="lang-zh lang-hidden">支持URL和文件</span>
+              </h3>
+              <p class="text-muted">
+                <span class="lang-en">Load PAC files from local paths or remote URLs</span>
+                <span class="lang-zh lang-hidden">从本地路径或远程URL加载PAC文件</span>
+              </p>
+            </div>
+
+            <div class="feature-card bg-white p-6 rounded-lg shadow-md">
+              <div class="text-primary text-3xl mb-4">
+                <i class="fa fa-terminal"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">
+                <span class="lang-en">CLI Included</span>
+                <span class="lang-zh lang-hidden">包含命令行工具</span>
+              </h3>
+              <p class="text-muted">
+                <span class="lang-en">Use pacparser directly from the command line</span>
+                <span class="lang-zh lang-hidden">直接从命令行使用pacparser</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section id="installation" class="py-16 bg-white">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto">
+          <h2 class="text-3xl font-bold mb-8 text-center">
+            <span class="lang-en">Installation</span>
+            <span class="lang-zh lang-hidden">安装</span>
+          </h2>
+
+          <p class="text-lg mb-6">
+            <span class="lang-en">
+              Install Pacparser using npm or pnpm. It can be used as a library in your Node.js
+              projects or as a command-line tool.
+            </span>
+            <span class="lang-zh lang-hidden">
+              使用npm或pnpm安装Pacparser。它可以作为库在您的Node.js项目中使用，也可以作为命令行工具使用。
+            </span>
+          </p>
+
+          <div class="code-block">
+            <button
+              class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded"
+              onclick="copyCode(this)"
+            >
+              <i class="fa fa-copy"></i>
+            </button>
+            <pre><code class="language-bash">npm install pacparser # Use in Node.js
 npm install pacparser -g # Use as a command line tool</code></pre>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Usage Section -->
-  <section id="usage" class="py-16 bg-light">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mx-auto">
-        <h2 class="text-3xl font-bold mb-8 text-center">
-          <span class="lang-en">Basic Usage</span>
-          <span class="lang-zh lang-hidden">基本用法</span>
-        </h2>
-        
-        <p class="text-lg mb-8">
-          <span class="lang-en">
-            Pacparser is easy to use. Create an instance, load your PAC file (from a path, URL, or directly as a string),
-            and then find the appropriate proxy for any URL.
-          </span>
-          <span class="lang-zh lang-hidden">
-            Pacparser使用简单。创建一个实例，加载您的PAC文件（从路径、URL或直接作为字符串），
-            然后为任何URL找到合适的代理。
-          </span>
-        </p>
-        
-        <h3 class="text-2xl font-semibold mb-4">
-          <span class="lang-en">Loading from a URL</span>
-          <span class="lang-zh lang-hidden">从URL加载</span>
-        </h3>
-        <div class="code-block">
-          <button class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded" onclick="copyCode(this)">
-            <i class="fa fa-copy"></i>
-          </button>
-          <pre><code class="language-javascript">import Pacparser from "pacparser";
+    <!-- Usage Section -->
+    <section id="usage" class="py-16 bg-light">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto">
+          <h2 class="text-3xl font-bold mb-8 text-center">
+            <span class="lang-en">Basic Usage</span>
+            <span class="lang-zh lang-hidden">基本用法</span>
+          </h2>
+
+          <p class="text-lg mb-8">
+            <span class="lang-en">
+              Pacparser is easy to use. Create an instance, load your PAC file (from a path, URL, or
+              directly as a string), and then find the appropriate proxy for any URL.
+            </span>
+            <span class="lang-zh lang-hidden">
+              Pacparser使用简单。创建一个实例，加载您的PAC文件（从路径、URL或直接作为字符串），
+              然后为任何URL找到合适的代理。
+            </span>
+          </p>
+
+          <h3 class="text-2xl font-semibold mb-4">
+            <span class="lang-en">Loading from a URL</span>
+            <span class="lang-zh lang-hidden">从URL加载</span>
+          </h3>
+          <div class="code-block">
+            <button
+              class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded"
+              onclick="copyCode(this)"
+            >
+              <i class="fa fa-copy"></i>
+            </button>
+            <pre><code class="language-javascript">import Pacparser from "pacparser";
 
 const pacParser = new Pacparser();
 pacParser.parsePac("https://proxy.example.com/proxy.pac");
 const proxy = await pacParser.findProxy("https://direct.mozilla.org");</code></pre>
-        </div>
-        
-        <h3 class="text-2xl font-semibold mb-4 mt-8">
-          <span class="lang-en">Loading from a File</span>
-          <span class="lang-zh lang-hidden">从文件加载</span>
-        </h3>
-        <div class="code-block">
-          <button class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded" onclick="copyCode(this)">
-            <i class="fa fa-copy"></i>
-          </button>
-          <pre><code class="language-javascript">import Pacparser from "pacparser";
+          </div>
+
+          <h3 class="text-2xl font-semibold mb-4 mt-8">
+            <span class="lang-en">Loading from a File</span>
+            <span class="lang-zh lang-hidden">从文件加载</span>
+          </h3>
+          <div class="code-block">
+            <button
+              class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded"
+              onclick="copyCode(this)"
+            >
+              <i class="fa fa-copy"></i>
+            </button>
+            <pre><code class="language-javascript">import Pacparser from "pacparser";
 import path from "path";
 
 const pacParser = Pacparser.create(path.join(__dirname, "./proxy.pac"));
 await pacParser.findProxy("https://direct.mozilla.org"); // returns "DIRECT"</code></pre>
-        </div>
-        
-        <h3 class="text-2xl font-semibold mb-4 mt-8">
-          <span class="lang-en">Using PAC Script Directly</span>
-          <span class="lang-zh lang-hidden">直接使用PAC脚本</span>
-        </h3>
-        <div class="code-block">
-          <button class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded" onclick="copyCode(this)">
-            <i class="fa fa-copy"></i>
-          </button>
-          <pre><code class="language-javascript">import Pacparser from "pacparser";
+          </div>
+
+          <h3 class="text-2xl font-semibold mb-4 mt-8">
+            <span class="lang-en">Using PAC Script Directly</span>
+            <span class="lang-zh lang-hidden">直接使用PAC脚本</span>
+          </h3>
+          <div class="code-block">
+            <button
+              class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded"
+              onclick="copyCode(this)"
+            >
+              <i class="fa fa-copy"></i>
+            </button>
+            <pre><code class="language-javascript">import Pacparser from "pacparser";
 
 const pacScript = `
   function FindProxyForURL(url, host) {
@@ -420,447 +480,563 @@ const pacScript = `
 const pacParser = new Pacparser();
 pacParser.parsePac(pacScript);
 const proxy = await pacParser.findProxy("https://example.com");</code></pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- API Documentation Section -->
-  <section id="api" class="py-16 bg-white">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mx-auto">
-        <h2 class="text-3xl font-bold mb-8 text-center">
-          <span class="lang-en">API Documentation</span>
-          <span class="lang-zh lang-hidden">API文档</span>
-        </h2>
-        
-        <div class="mb-12">
-          <h3 class="text-2xl font-semibold mb-4">
-            <span class="lang-en">Pacparser Class</span>
-            <span class="lang-zh lang-hidden">Pacparser类</span>
-          </h3>
-          <p class="mb-4">
-            <span class="lang-en">The main class for parsing and executing PAC files.</span>
-            <span class="lang-zh lang-hidden">用于解析和执行PAC文件的主类。</span>
-          </p>
-          
-          <div class="bg-light p-6 rounded-lg mb-6">
-            <h4 class="text-xl font-medium mb-2">
-              <span class="lang-en">Constructor: <code class="bg-white px-1 py-0.5 rounded">new Pacparser(pac? string)</code></span>
-              <span class="lang-zh lang-hidden">构造函数: <code class="bg-white px-1 py-0.5 rounded">new Pacparser(pac? string)</code></span>
-            </h4>
-            <p class="mb-2">
-              <span class="lang-en">Creates a new Pacparser instance.</span>
-              <span class="lang-zh lang-hidden">创建一个新的Pacparser实例。</span>
-            </p>
-            <ul class="list-disc pl-5 text-muted">
-              <li>
-                <span class="lang-en"><code class="bg-white px-1 py-0.5 rounded">pac</code> (optional): PAC file path, URL, or PAC script string</span>
-                <span class="lang-zh lang-hidden"><code class="bg-white px-1 py-0.5 rounded">pac</code>（可选）：PAC文件路径、URL或PAC脚本字符串</span>
-              </li>
-            </ul>
-          </div>
-          
-          <div class="bg-light p-6 rounded-lg mb-6">
-            <h4 class="text-xl font-medium mb-2">
-              <span class="lang-en">Static Method: <code class="bg-white px-1 py-0.5 rounded">Pacparser.create(pac? string)</code></span>
-              <span class="lang-zh lang-hidden">静态方法: <code class="bg-white px-1 py-0.5 rounded">Pacparser.create(pac? string)</code></span>
-            </h4>
-            <p class="mb-2">
-              <span class="lang-en">Alternative way to create a new Pacparser instance.</span>
-              <span class="lang-zh lang-hidden">创建新Pacparser实例的另一种方式。</span>
-            </p>
-            <ul class="list-disc pl-5 text-muted">
-              <li>
-                <span class="lang-en"><code class="bg-white px-1 py-0.5 rounded">pac</code> (optional): PAC file path, URL, or PAC script string</span>
-                <span class="lang-zh lang-hidden"><code class="bg-white px-1 py-0.5 rounded">pac</code>（可选）：PAC文件路径、URL或PAC脚本字符串</span>
-              </li>
-              <li>
-                <span class="lang-en">Returns: A new Pacparser instance</span>
-                <span class="lang-zh lang-hidden">返回：一个新的Pacparser实例</span>
-              </li>
-            </ul>
-          </div>
-          
-          <div class="bg-light p-6 rounded-lg mb-6">
-            <h4 class="text-xl font-medium mb-2">
-              <span class="lang-en">Method: <code class="bg-white px-1 py-0.5 rounded">parsePac(pac: string)</code></span>
-              <span class="lang-zh lang-hidden">方法: <code class="bg-white px-1 py-0.5 rounded">parsePac(pac: string)</code></span>
-            </h4>
-            <p class="mb-2">
-              <span class="lang-en">Switches the PAC source (filepath, URL, or PAC script).</span>
-              <span class="lang-zh lang-hidden">切换PAC源（文件路径、URL或PAC脚本）。</span>
-            </p>
-            <ul class="list-disc pl-5 text-muted">
-              <li>
-                <span class="lang-en"><code class="bg-white px-1 py-0.5 rounded">pac</code>: PAC file path, URL, or PAC script string</span>
-                <span class="lang-zh lang-hidden"><code class="bg-white px-1 py-0.5 rounded">pac</code>：PAC文件路径、URL或PAC脚本字符串</span>
-              </li>
-              <li>
-                <span class="lang-en">Returns: The Pacparser instance (allows chaining)</span>
-                <span class="lang-zh lang-hidden">返回：Pacparser实例（支持链式调用）</span>
-              </li>
-            </ul>
-          </div>
-          
-          <div class="bg-light p-6 rounded-lg mb-6">
-            <h4 class="text-xl font-medium mb-2">
-              <span class="lang-en">Method: <code class="bg-white px-1 py-0.5 rounded">findProxy(url: string, host?: string)</code></span>
-              <span class="lang-zh lang-hidden">方法: <code class="bg-white px-1 py-0.5 rounded">findProxy(url: string, host?: string)</code></span>
-            </h4>
-            <p class="mb-2">
-              <span class="lang-en">Finds the appropriate proxy configuration for a given URL.</span>
-              <span class="lang-zh lang-hidden">为给定URL找到合适的代理配置。</span>
-            </p>
-            <ul class="list-disc pl-5 text-muted">
-              <li>
-                <span class="lang-en"><code class="bg-white px-1 py-0.5 rounded">url</code>: The target URL</span>
-                <span class="lang-zh lang-hidden"><code class="bg-white px-1 py-0.5 rounded">url</code>：目标URL</span>
-              </li>
-              <li>
-                <span class="lang-en"><code class="bg-white px-1 py-0.5 rounded">host</code> (optional): The hostname (defaults to URL's hostname)</span>
-                <span class="lang-zh lang-hidden"><code class="bg-white px-1 py-0.5 rounded">host</code>（可选）：主机名（默认为URL的主机名）</span>
-              </li>
-              <li>
-                <span class="lang-en">Returns: Promise that resolves to proxy configuration string (e.g., "PROXY proxy:port; DIRECT")</span>
-                <span class="lang-zh lang-hidden">返回：Promise，解析为代理配置字符串（例如，"PROXY proxy:port; DIRECT"）</span>
-              </li>
-            </ul>
-          </div>
-          
-          <div class="bg-light p-6 rounded-lg mb-6">
-            <h4 class="text-xl font-medium mb-2">
-              <span class="lang-en">Method: <code class="bg-white px-1 py-0.5 rounded">reload()</code></span>
-              <span class="lang-zh lang-hidden">方法: <code class="bg-white px-1 py-0.5 rounded">reload()</code></span>
-            </h4>
-            <p class="mb-2">
-              <span class="lang-en">Reloads the current PAC script.</span>
-              <span class="lang-zh lang-hidden">重新加载当前的PAC脚本。</span>
-            </p>
-            <ul class="list-disc pl-5 text-muted">
-              <li>
-                <span class="lang-en">Returns: Promise that resolves when reload is complete</span>
-                <span class="lang-zh lang-hidden">返回：当重新加载完成时解析的Promise</span>
-              </li>
-            </ul>
-          </div>
-          
-          <div class="bg-light p-6 rounded-lg mb-6">
-            <h4 class="text-xl font-medium mb-2">
-              <span class="lang-en">Method: <code class="bg-white px-1 py-0.5 rounded">cleanup()</code></span>
-              <span class="lang-zh lang-hidden">方法: <code class="bg-white px-1 py-0.5 rounded">cleanup()</code></span>
-            </h4>
-            <p class="mb-2">
-              <span class="lang-en">Cleans up the Pacparser instance and releases resources.</span>
-              <span class="lang-zh lang-hidden">清理Pacparser实例并释放资源。</span>
-            </p>
-          </div>
-          
-          <div class="bg-light p-6 rounded-lg">
-            <h4 class="text-xl font-medium mb-2">
-              <span class="lang-en">Method: <code class="bg-white px-1 py-0.5 rounded">getPacCode()</code></span>
-              <span class="lang-zh lang-hidden">方法: <code class="bg-white px-1 py-0.5 rounded">getPacCode()</code></span>
-            </h4>
-            <p class="mb-2">
-              <span class="lang-en">Gets the current PAC script code.</span>
-              <span class="lang-zh lang-hidden">获取当前的PAC脚本代码。</span>
-            </p>
-            <ul class="list-disc pl-5 text-muted">
-              <li>
-                <span class="lang-en">Returns: PAC script string</span>
-                <span class="lang-zh lang-hidden">返回：PAC脚本字符串</span>
-              </li>
-            </ul>
-          </div>
-           <div class="bg-light p-6 rounded-lg">
-            <h4 class="text-xl font-medium mb-2">
-              <span class="lang-en">Method: <code class="bg-white px-1 py-0.5 rounded">getPacSource()</code></span>
-              <span class="lang-zh lang-hidden">方法: <code class="bg-white px-1 py-0.5 rounded">getPacSource()</code></span>
-            </h4>
-            <p class="mb-2">
-              <span class="lang-en">Get pac source in pacparser instance.</span>
-              <span class="lang-zh lang-hidden">获取当前的PAC资源。</span>
-            </p>
-            <ul class="list-disc pl-5 text-muted">
-              <li>
-                <span class="lang-en">Returns: PAC source string</span>
-                <span class="lang-zh lang-hidden">返回：PAC资源</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-        
-        <div>
-          <h3 class="text-2xl font-semibold mb-4">
-            <span class="lang-en">PAC Built-in Functions</span>
-            <span class="lang-zh lang-hidden">PAC内置函数</span>
-          </h3>
-          <p class="mb-4">
-            <span class="lang-en">Pacparser supports all standard PAC built-in functions:</span>
-            <span class="lang-zh lang-hidden">Pacparser支持所有标准的PAC内置函数：</span>
-          </p>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">isPlainHostName(host)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">dnsDomainIs(host, domain)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">localHostOrDomainIs(host, hostdom)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">isResolvable(host)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">isInNet(host, pattern, mask)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">dnsResolve(host)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">convert_addr(ipaddr)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">myIpAddress()</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">dnsDomainLevels(host)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">shExpMatch(str, shexp)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">weekdayRange(wd1, wd2?, gmt?)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">dateRange(...args)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">timeRange(...args)</code>
-            </div>
-            <div class="bg-light p-4 rounded-lg">
-              <code class="bg-white px-1 py-0.5 rounded">alter(str)</code>
-            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- CLI Section -->
-  <section id="cli" class="py-16 bg-light">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mx-auto">
-        <h2 class="text-3xl font-bold mb-8 text-center">
-          <span class="lang-en">Command Line Interface</span>
-          <span class="lang-zh lang-hidden">命令行界面</span>
-        </h2>
-        
-        <p class="text-lg mb-6">
-          <span class="lang-en">
-            When installed globally, Pacparser provides a CLI tool that can be used with either <code class="bg-white px-1 py-0.5 rounded">pacparser</code> or its shortcut <code class="bg-white px-1 py-0.5 rounded">pap</code>.
-          </span>
-          <span class="lang-zh lang-hidden">
-            全局安装后，Pacparser提供了一个CLI工具，可以通过<code class="bg-white px-1 py-0.5 rounded">pacparser</code>或其快捷方式<code class="bg-white px-1 py-0.5 rounded">pap</code>使用。
-          </span>
-        </p>
-        
-        <h3 class="text-2xl font-semibold mb-4">
-          <span class="lang-en">Basic CLI Usage</span>
-          <span class="lang-zh lang-hidden">基本CLI用法</span>
-        </h3>
-        <div class="code-block">
-          <button class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded" onclick="copyCode(this)">
-            <i class="fa fa-copy"></i>
-          </button>
-          <pre><code class="language-bash">pacparser exec --pac './proxy.pac' --findproxy https://www.google.com
+    <!-- API Documentation Section -->
+    <section id="api" class="py-16 bg-white">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto">
+          <h2 class="text-3xl font-bold mb-8 text-center">
+            <span class="lang-en">API Documentation</span>
+            <span class="lang-zh lang-hidden">API文档</span>
+          </h2>
+
+          <div class="mb-12">
+            <h3 class="text-2xl font-semibold mb-4">
+              <span class="lang-en">Pacparser Class</span>
+              <span class="lang-zh lang-hidden">Pacparser类</span>
+            </h3>
+            <p class="mb-4">
+              <span class="lang-en">The main class for parsing and executing PAC files.</span>
+              <span class="lang-zh lang-hidden">用于解析和执行PAC文件的主类。</span>
+            </p>
+
+            <div class="bg-light p-6 rounded-lg mb-6">
+              <h4 class="text-xl font-medium mb-2">
+                <span class="lang-en"
+                  >Constructor:
+                  <code class="bg-white px-1 py-0.5 rounded">new Pacparser(pac? string)</code></span
+                >
+                <span class="lang-zh lang-hidden"
+                  >构造函数:
+                  <code class="bg-white px-1 py-0.5 rounded">new Pacparser(pac? string)</code></span
+                >
+              </h4>
+              <p class="mb-2">
+                <span class="lang-en">Creates a new Pacparser instance.</span>
+                <span class="lang-zh lang-hidden">创建一个新的Pacparser实例。</span>
+              </p>
+              <ul class="list-disc pl-5 text-muted">
+                <li>
+                  <span class="lang-en"
+                    ><code class="bg-white px-1 py-0.5 rounded">pac</code> (optional): PAC file
+                    path, URL, or PAC script string</span
+                  >
+                  <span class="lang-zh lang-hidden"
+                    ><code class="bg-white px-1 py-0.5 rounded">pac</code
+                    >（可选）：PAC文件路径、URL或PAC脚本字符串</span
+                  >
+                </li>
+              </ul>
+            </div>
+
+            <div class="bg-light p-6 rounded-lg mb-6">
+              <h4 class="text-xl font-medium mb-2">
+                <span class="lang-en"
+                  >Static Method:
+                  <code class="bg-white px-1 py-0.5 rounded"
+                    >Pacparser.create(pac? string)</code
+                  ></span
+                >
+                <span class="lang-zh lang-hidden"
+                  >静态方法:
+                  <code class="bg-white px-1 py-0.5 rounded"
+                    >Pacparser.create(pac? string)</code
+                  ></span
+                >
+              </h4>
+              <p class="mb-2">
+                <span class="lang-en">Alternative way to create a new Pacparser instance.</span>
+                <span class="lang-zh lang-hidden">创建新Pacparser实例的另一种方式。</span>
+              </p>
+              <ul class="list-disc pl-5 text-muted">
+                <li>
+                  <span class="lang-en"
+                    ><code class="bg-white px-1 py-0.5 rounded">pac</code> (optional): PAC file
+                    path, URL, or PAC script string</span
+                  >
+                  <span class="lang-zh lang-hidden"
+                    ><code class="bg-white px-1 py-0.5 rounded">pac</code
+                    >（可选）：PAC文件路径、URL或PAC脚本字符串</span
+                  >
+                </li>
+                <li>
+                  <span class="lang-en">Returns: A new Pacparser instance</span>
+                  <span class="lang-zh lang-hidden">返回：一个新的Pacparser实例</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="bg-light p-6 rounded-lg mb-6">
+              <h4 class="text-xl font-medium mb-2">
+                <span class="lang-en"
+                  >Method:
+                  <code class="bg-white px-1 py-0.5 rounded">parsePac(pac: string)</code></span
+                >
+                <span class="lang-zh lang-hidden"
+                  >方法:
+                  <code class="bg-white px-1 py-0.5 rounded">parsePac(pac: string)</code></span
+                >
+              </h4>
+              <p class="mb-2">
+                <span class="lang-en">Switches the PAC source (filepath, URL, or PAC script).</span>
+                <span class="lang-zh lang-hidden">切换PAC源（文件路径、URL或PAC脚本）。</span>
+              </p>
+              <ul class="list-disc pl-5 text-muted">
+                <li>
+                  <span class="lang-en"
+                    ><code class="bg-white px-1 py-0.5 rounded">pac</code>: PAC file path, URL, or
+                    PAC script string</span
+                  >
+                  <span class="lang-zh lang-hidden"
+                    ><code class="bg-white px-1 py-0.5 rounded">pac</code
+                    >：PAC文件路径、URL或PAC脚本字符串</span
+                  >
+                </li>
+                <li>
+                  <span class="lang-en">Returns: The Pacparser instance (allows chaining)</span>
+                  <span class="lang-zh lang-hidden">返回：Pacparser实例（支持链式调用）</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="bg-light p-6 rounded-lg mb-6">
+              <h4 class="text-xl font-medium mb-2">
+                <span class="lang-en"
+                  >Method:
+                  <code class="bg-white px-1 py-0.5 rounded"
+                    >findProxy(url: string, host?: string)</code
+                  ></span
+                >
+                <span class="lang-zh lang-hidden"
+                  >方法:
+                  <code class="bg-white px-1 py-0.5 rounded"
+                    >findProxy(url: string, host?: string)</code
+                  ></span
+                >
+              </h4>
+              <p class="mb-2">
+                <span class="lang-en"
+                  >Finds the appropriate proxy configuration for a given URL.</span
+                >
+                <span class="lang-zh lang-hidden">为给定URL找到合适的代理配置。</span>
+              </p>
+              <ul class="list-disc pl-5 text-muted">
+                <li>
+                  <span class="lang-en"
+                    ><code class="bg-white px-1 py-0.5 rounded">url</code>: The target URL</span
+                  >
+                  <span class="lang-zh lang-hidden"
+                    ><code class="bg-white px-1 py-0.5 rounded">url</code>：目标URL</span
+                  >
+                </li>
+                <li>
+                  <span class="lang-en"
+                    ><code class="bg-white px-1 py-0.5 rounded">host</code> (optional): The hostname
+                    (defaults to URL's hostname)</span
+                  >
+                  <span class="lang-zh lang-hidden"
+                    ><code class="bg-white px-1 py-0.5 rounded">host</code
+                    >（可选）：主机名（默认为URL的主机名）</span
+                  >
+                </li>
+                <li>
+                  <span class="lang-en"
+                    >Returns: Promise that resolves to proxy configuration string (e.g., "PROXY
+                    proxy:port; DIRECT")</span
+                  >
+                  <span class="lang-zh lang-hidden"
+                    >返回：Promise，解析为代理配置字符串（例如，"PROXY proxy:port; DIRECT"）</span
+                  >
+                </li>
+              </ul>
+            </div>
+
+            <div class="bg-light p-6 rounded-lg mb-6">
+              <h4 class="text-xl font-medium mb-2">
+                <span class="lang-en"
+                  >Method: <code class="bg-white px-1 py-0.5 rounded">reload()</code></span
+                >
+                <span class="lang-zh lang-hidden"
+                  >方法: <code class="bg-white px-1 py-0.5 rounded">reload()</code></span
+                >
+              </h4>
+              <p class="mb-2">
+                <span class="lang-en">Reloads the current PAC script.</span>
+                <span class="lang-zh lang-hidden">重新加载当前的PAC脚本。</span>
+              </p>
+              <ul class="list-disc pl-5 text-muted">
+                <li>
+                  <span class="lang-en"
+                    >Returns: Promise that resolves when reload is complete</span
+                  >
+                  <span class="lang-zh lang-hidden">返回：当重新加载完成时解析的Promise</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="bg-light p-6 rounded-lg mb-6">
+              <h4 class="text-xl font-medium mb-2">
+                <span class="lang-en"
+                  >Method: <code class="bg-white px-1 py-0.5 rounded">cleanup()</code></span
+                >
+                <span class="lang-zh lang-hidden"
+                  >方法: <code class="bg-white px-1 py-0.5 rounded">cleanup()</code></span
+                >
+              </h4>
+              <p class="mb-2">
+                <span class="lang-en"
+                  >Cleans up the Pacparser instance and releases resources.</span
+                >
+                <span class="lang-zh lang-hidden">清理Pacparser实例并释放资源。</span>
+              </p>
+            </div>
+
+            <div class="bg-light p-6 rounded-lg">
+              <h4 class="text-xl font-medium mb-2">
+                <span class="lang-en"
+                  >Method: <code class="bg-white px-1 py-0.5 rounded">getPacCode()</code></span
+                >
+                <span class="lang-zh lang-hidden"
+                  >方法: <code class="bg-white px-1 py-0.5 rounded">getPacCode()</code></span
+                >
+              </h4>
+              <p class="mb-2">
+                <span class="lang-en">Gets the current PAC script code.</span>
+                <span class="lang-zh lang-hidden">获取当前的PAC脚本代码。</span>
+              </p>
+              <ul class="list-disc pl-5 text-muted">
+                <li>
+                  <span class="lang-en">Returns: PAC script string</span>
+                  <span class="lang-zh lang-hidden">返回：PAC脚本字符串</span>
+                </li>
+              </ul>
+            </div>
+            <div class="bg-light p-6 rounded-lg">
+              <h4 class="text-xl font-medium mb-2">
+                <span class="lang-en"
+                  >Method: <code class="bg-white px-1 py-0.5 rounded">getPacSource()</code></span
+                >
+                <span class="lang-zh lang-hidden"
+                  >方法: <code class="bg-white px-1 py-0.5 rounded">getPacSource()</code></span
+                >
+              </h4>
+              <p class="mb-2">
+                <span class="lang-en">Get pac source in pacparser instance.</span>
+                <span class="lang-zh lang-hidden">获取当前的PAC资源。</span>
+              </p>
+              <ul class="list-disc pl-5 text-muted">
+                <li>
+                  <span class="lang-en">Returns: PAC source string</span>
+                  <span class="lang-zh lang-hidden">返回：PAC资源</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-2xl font-semibold mb-4">
+              <span class="lang-en">PAC Built-in Functions</span>
+              <span class="lang-zh lang-hidden">PAC内置函数</span>
+            </h3>
+            <p class="mb-4">
+              <span class="lang-en">Pacparser supports all standard PAC built-in functions:</span>
+              <span class="lang-zh lang-hidden">Pacparser支持所有标准的PAC内置函数：</span>
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">isPlainHostName(host)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">dnsDomainIs(host, domain)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">localHostOrDomainIs(host, hostdom)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">isResolvable(host)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">isInNet(host, pattern, mask)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">dnsResolve(host)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">convert_addr(ipaddr)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">myIpAddress()</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">dnsDomainLevels(host)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">shExpMatch(str, shexp)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">weekdayRange(wd1, wd2?, gmt?)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">dateRange(...args)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">timeRange(...args)</code>
+              </div>
+              <div class="bg-light p-4 rounded-lg">
+                <code class="bg-white px-1 py-0.5 rounded">alter(str)</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLI Section -->
+    <section id="cli" class="py-16 bg-light">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto">
+          <h2 class="text-3xl font-bold mb-8 text-center">
+            <span class="lang-en">Command Line Interface</span>
+            <span class="lang-zh lang-hidden">命令行界面</span>
+          </h2>
+
+          <p class="text-lg mb-6">
+            <span class="lang-en">
+              When installed globally, Pacparser provides a CLI tool that can be used with either
+              <code class="bg-white px-1 py-0.5 rounded">pacparser</code> or its shortcut
+              <code class="bg-white px-1 py-0.5 rounded">pap</code>.
+            </span>
+            <span class="lang-zh lang-hidden">
+              全局安装后，Pacparser提供了一个CLI工具，可以通过<code
+                class="bg-white px-1 py-0.5 rounded"
+                >pacparser</code
+              >或其快捷方式<code class="bg-white px-1 py-0.5 rounded">pap</code>使用。
+            </span>
+          </p>
+
+          <h3 class="text-2xl font-semibold mb-4">
+            <span class="lang-en">Basic CLI Usage</span>
+            <span class="lang-zh lang-hidden">基本CLI用法</span>
+          </h3>
+          <div class="code-block">
+            <button
+              class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded"
+              onclick="copyCode(this)"
+            >
+              <i class="fa fa-copy"></i>
+            </button>
+            <pre><code class="language-bash">pacparser exec --pac './proxy.pac' --findproxy https://www.google.com
 # Or use the shortcut command
 pap exec -p './proxy.pac' -f https://www.google.com</code></pre>
-        </div>
-        
-        <h3 class="text-2xl font-semibold mb-4 mt-8">
-          <span class="lang-en">Using a PAC Script Directly</span>
-          <span class="lang-zh lang-hidden">直接使用PAC脚本</span>
-        </h3>
-        <div class="code-block">
-          <button class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded" onclick="copyCode(this)">
-            <i class="fa fa-copy"></i>
-          </button>
-          <pre><code class="language-bash">pap exec -p 'function FindProxyForURL(url, host) {
+          </div>
+
+          <h3 class="text-2xl font-semibold mb-4 mt-8">
+            <span class="lang-en">Using a PAC Script Directly</span>
+            <span class="lang-zh lang-hidden">直接使用PAC脚本</span>
+          </h3>
+          <div class="code-block">
+            <button
+              class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded"
+              onclick="copyCode(this)"
+            >
+              <i class="fa fa-copy"></i>
+            </button>
+            <pre><code class="language-bash">pap exec -p 'function FindProxyForURL(url, host) {
   if (isPlainHostName(host)) {
     return "DIRECT";
   } else {
     return "PROXY w3proxy.mozilla.org:8080; DIRECT";
   }
 }' -f https://www.google.com</code></pre>
-        </div>
-        
-        <h3 class="text-2xl font-semibold mb-4 mt-8">
-          <span class="lang-en">Using a PAC URL</span>
-          <span class="lang-zh lang-hidden">使用PAC URL</span>
-        </h3>
-        <div class="code-block">
-          <button class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded" onclick="copyCode(this)">
-            <i class="fa fa-copy"></i>
-          </button>
-          <pre><code class="language-bash">pap exec -p http://localhost:3000/proxy.pac -f https://www.google.com</code></pre>
+          </div>
+
+          <h3 class="text-2xl font-semibold mb-4 mt-8">
+            <span class="lang-en">Using a PAC URL</span>
+            <span class="lang-zh lang-hidden">使用PAC URL</span>
+          </h3>
+          <div class="code-block">
+            <button
+              class="copy-btn bg-muted hover:bg-muted/80 text-white p-2 rounded"
+              onclick="copyCode(this)"
+            >
+              <i class="fa fa-copy"></i>
+            </button>
+            <pre><code class="language-bash">pap exec -p http://localhost:3000/proxy.pac -f https://www.google.com</code></pre>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Footer -->
-  <footer class="bg-dark text-white py-12">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mx-auto text-center">
-        <div class="flex items-center justify-center space-x-2 mb-6">
-          <i class="fa fa-code-fork text-primary text-2xl"></i>
-          <h2 class="text-xl font-bold text-white">
-            <span class="lang-en">Pacparser</span>
-            <span class="lang-zh lang-hidden">Pacparser</span>
-          </h2>
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-12">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto text-center">
+          <div class="flex items-center justify-center space-x-2 mb-6">
+            <i class="fa fa-code-fork text-primary text-2xl"></i>
+            <h2 class="text-xl font-bold text-white">
+              <span class="lang-en">Pacparser</span>
+              <span class="lang-zh lang-hidden">Pacparser</span>
+            </h2>
+          </div>
+
+          <p class="mb-6 text-muted">
+            <span class="lang-en"
+              >A library to parse proxy auto-config (PAC) files in Node.js.</span
+            >
+            <span class="lang-zh lang-hidden"
+              >一个用于在Node.js中解析代理自动配置（PAC）文件的库。</span
+            >
+          </p>
+
+          <div class="flex justify-center space-x-6 mb-8">
+            <a
+              href="https://github.com/ChrisSong1994/pacparser"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-muted hover:text-white transition-colors"
+            >
+              <i class="fa fa-github text-2xl"></i>
+            </a>
+            <a
+              href="https://www.npmjs.com/package/pacparser"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-muted hover:text-white transition-colors"
+            >
+              <i class="fa fa-npm text-2xl"></i>
+            </a>
+          </div>
+
+          <p class="text-sm text-muted">
+            <span class="lang-en">© 2025 ChrisSong1994. Released under the MIT License.</span>
+            <span class="lang-zh lang-hidden">© 2025 ChrisSong1994。根据MIT许可证发布。</span>
+          </p>
         </div>
-        
-        <p class="mb-6 text-muted">
-          <span class="lang-en">A library to parse proxy auto-config (PAC) files in Node.js.</span>
-          <span class="lang-zh lang-hidden">一个用于在Node.js中解析代理自动配置（PAC）文件的库。</span>
-        </p>
-        
-        <div class="flex justify-center space-x-6 mb-8">
-          <a href="https://github.com/ChrisSong1994/pacparser" target="_blank" rel="noopener noreferrer" 
-             class="text-muted hover:text-white transition-colors">
-            <i class="fa fa-github text-2xl"></i>
-          </a>
-          <a href="https://www.npmjs.com/package/pacparser" target="_blank" rel="noopener noreferrer" 
-             class="text-muted hover:text-white transition-colors">
-            <i class="fa fa-npm text-2xl"></i>
-          </a>
-        </div>
-        
-        <p class="text-sm text-muted">
-          <span class="lang-en">© 2025 ChrisSong1994. Released under the MIT License.</span>
-          <span class="lang-zh lang-hidden">© 2025 ChrisSong1994。根据MIT许可证发布。</span>
-        </p>
       </div>
-    </div>
-  </footer>
+    </footer>
 
-  <script>
-    // 页面加载完成后初始化代码高亮
-    document.addEventListener('DOMContentLoaded', () => {
-      // 初始化Prism代码高亮
-      Prism.highlightAll();
-      
-      // 语言切换功能
-      function setLanguage(lang) {
-        // 隐藏所有语言元素
-        document.querySelectorAll('.lang-en, .lang-zh').forEach(el => {
-          el.classList.add('lang-hidden');
-        });
-        
-        // 显示选中的语言元素
-        document.querySelectorAll(`.lang-${lang}`).forEach(el => {
-          el.classList.remove('lang-hidden');
-        });
-        
-        // 更新活跃按钮状态
-        document.querySelectorAll('.lang-btn').forEach(btn => {
-          btn.classList.remove('active');
-        });
-        document.getElementById(`lang-${lang}-btn`).classList.add('active');
-        document.getElementById(`mobile-lang-${lang}-btn`).classList.add('active');
-        
-        // 保存偏好到localStorage
-        localStorage.setItem('preferredLanguage', lang);
-      }
-      
-      // 基于localStorage初始化语言或默认为英文
-      const savedLang = localStorage.getItem('preferredLanguage') || 'en';
-      setLanguage(savedLang);
-      
-      // 为语言按钮添加事件监听器
-      document.getElementById('lang-en-btn').addEventListener('click', () => setLanguage('en'));
-      document.getElementById('lang-zh-btn').addEventListener('click', () => setLanguage('zh'));
-      document.getElementById('mobile-lang-en-btn').addEventListener('click', () => setLanguage('en'));
-      document.getElementById('mobile-lang-zh-btn').addEventListener('click', () => setLanguage('zh'));
-      
-      // 移动菜单切换
-      const mobileMenuButton = document.getElementById('mobile-menu-button');
-      const mobileMenu = document.getElementById('mobile-menu');
-      
-      mobileMenuButton.addEventListener('click', () => {
-        mobileMenu.classList.toggle('hidden');
-      });
-      
-      // 点击链接时关闭移动菜单
-      const mobileLinks = mobileMenu.querySelectorAll('a');
-      mobileLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          mobileMenu.classList.add('hidden');
-        });
-      });
-    });
-    
-    // 复制代码功能
-    function copyCode(button) {
-      // 找到代码块元素
-      const preElement = button.nextElementSibling;
-      const codeElement = preElement.querySelector('code');
-      const textToCopy = codeElement.textContent;
-      
-      navigator.clipboard.writeText(textToCopy).then(() => {
-        const originalIcon = button.innerHTML;
-        button.innerHTML = '<i class="fa fa-check"></i>';
-        
-        setTimeout(() => {
-          button.innerHTML = originalIcon;
-        }, 2000);
-      });
-    }
-    
-    // 锚点链接平滑滚动
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        const targetId = this.getAttribute('href');
-        const targetElement = document.querySelector(targetId);
-        
-        if (targetElement) {
-          window.scrollTo({
-            top: targetElement.offsetTop - 80,
-            behavior: 'smooth'
+    <script>
+      // 页面加载完成后初始化代码高亮
+      document.addEventListener("DOMContentLoaded", () => {
+        // 初始化Prism代码高亮
+        Prism.highlightAll();
+
+        // 语言切换功能
+        function setLanguage(lang) {
+          // 隐藏所有语言元素
+          document.querySelectorAll(".lang-en, .lang-zh").forEach((el) => {
+            el.classList.add("lang-hidden");
           });
+
+          // 显示选中的语言元素
+          document.querySelectorAll(`.lang-${lang}`).forEach((el) => {
+            el.classList.remove("lang-hidden");
+          });
+
+          // 更新活跃按钮状态
+          document.querySelectorAll(".lang-btn").forEach((btn) => {
+            btn.classList.remove("active");
+          });
+          document.getElementById(`lang-${lang}-btn`).classList.add("active");
+          document.getElementById(`mobile-lang-${lang}-btn`).classList.add("active");
+
+          // 保存偏好到localStorage
+          localStorage.setItem("preferredLanguage", lang);
         }
+
+        // 基于localStorage初始化语言或默认为英文
+        const savedLang = localStorage.getItem("preferredLanguage") || "en";
+        setLanguage(savedLang);
+
+        // 为语言按钮添加事件监听器
+        document.getElementById("lang-en-btn").addEventListener("click", () => setLanguage("en"));
+        document.getElementById("lang-zh-btn").addEventListener("click", () => setLanguage("zh"));
+        document
+          .getElementById("mobile-lang-en-btn")
+          .addEventListener("click", () => setLanguage("en"));
+        document
+          .getElementById("mobile-lang-zh-btn")
+          .addEventListener("click", () => setLanguage("zh"));
+
+        // 移动菜单切换
+        const mobileMenuButton = document.getElementById("mobile-menu-button");
+        const mobileMenu = document.getElementById("mobile-menu");
+
+        mobileMenuButton.addEventListener("click", () => {
+          mobileMenu.classList.toggle("hidden");
+        });
+
+        // 点击链接时关闭移动菜单
+        const mobileLinks = mobileMenu.querySelectorAll("a");
+        mobileLinks.forEach((link) => {
+          link.addEventListener("click", () => {
+            mobileMenu.classList.add("hidden");
+          });
+        });
       });
-    });
-    
-    // 滚动时高亮当前导航链接
-    window.addEventListener('scroll', () => {
-      const sections = document.querySelectorAll('section');
-      const navLinks = document.querySelectorAll('.nav-link');
-      
-      let current = '';
-      
-      sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.clientHeight;
-        
-        if (pageYOffset >= (sectionTop - 100)) {
-          current = section.getAttribute('id');
-        }
+
+      // 复制代码功能
+      function copyCode(button) {
+        // 找到代码块元素
+        const preElement = button.nextElementSibling;
+        const codeElement = preElement.querySelector("code");
+        const textToCopy = codeElement.textContent;
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          const originalIcon = button.innerHTML;
+          button.innerHTML = '<i class="fa fa-check"></i>';
+
+          setTimeout(() => {
+            button.innerHTML = originalIcon;
+          }, 2000);
+        });
+      }
+
+      // 锚点链接平滑滚动
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+
+          const targetId = this.getAttribute("href");
+          const targetElement = document.querySelector(targetId);
+
+          if (targetElement) {
+            window.scrollTo({
+              top: targetElement.offsetTop - 80,
+              behavior: "smooth",
+            });
+          }
+        });
       });
-      
-      navLinks.forEach(link => {
-        link.classList.remove('text-primary');
-        if (link.getAttribute('href') === `#${current}`) {
-          link.classList.add('text-primary');
-        }
+
+      // 滚动时高亮当前导航链接
+      window.addEventListener("scroll", () => {
+        const sections = document.querySelectorAll("section");
+        const navLinks = document.querySelectorAll(".nav-link");
+
+        let current = "";
+
+        sections.forEach((section) => {
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.clientHeight;
+
+          if (pageYOffset >= sectionTop - 100) {
+            current = section.getAttribute("id");
+          }
+        });
+
+        navLinks.forEach((link) => {
+          link.classList.remove("text-primary");
+          if (link.getAttribute("href") === `#${current}`) {
+            link.classList.add("text-primary");
+          }
+        });
       });
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>
-    
