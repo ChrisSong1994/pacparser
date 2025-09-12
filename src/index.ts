@@ -22,8 +22,8 @@ import { isHttpUrl, isFilePath, isPacCode, loadPacFile, loadPacUrl } from "./hel
 class Pacparser {
   private sandbox: any;
   private context: any;
-  pacString: string; // parse pac code
-  pacOriginal: string; // original pac file path or pac code or url
+  private pacString: string; // parse pac code
+  private pacOriginal: string; // original pac file path or pac code or url
   private pacSourceMap = new Map(); // pac 文件路径 => pac 源代码
   constructor(pac?: string) {
     this.sandbox = this.createSandbox();
@@ -87,9 +87,37 @@ class Pacparser {
   }
 
   /**
-   * 解析 PAC 脚本
+   * 切换 PAC 脚本
    * */
-  async parsePac(pac: string) {
+  public parsePac(pac: string) {
+    this.pacOriginal = pac;
+    return this;
+  }
+
+  /**
+   * 获取当前 PAC 脚本
+   */
+  public getPacCode() {
+    return this.pacString;
+  }
+  /**
+   * 获取当前 PAC 来源
+   */
+  public getPacSource() {
+    return this.pacOriginal;
+  }
+
+  /**
+   *  重新加载 PAC 脚本
+   */
+  public async reload() {
+    await this.parse(this.pacOriginal);
+  }
+
+  /**
+   * 解析 PAC 脚本
+   */
+  private async parse(pac: string) {
     if (isHttpUrl(pac)) {
       this.pacString = await loadPacUrl(pac);
     } else if (isFilePath(pac)) {
@@ -99,7 +127,6 @@ class Pacparser {
     } else {
       throw new Error("Invalid pac code");
     }
-    this.pacOriginal = pac;
     this.pacSourceMap.set(pac, this.pacString);
     this.compile(this.pacString);
   }
@@ -115,10 +142,15 @@ class Pacparser {
     if (!this.pacOriginal) {
       throw new Error("PAC script not loaded");
     }
-    // if un parse pac
-    if (!this.pacSourceMap.has(this.pacOriginal)) {
-      await this.parsePac(this.pacOriginal);
+
+    // if un parse pac or pac string change
+    if (
+      !this.pacSourceMap.has(this.pacOriginal) ||
+      this.pacString !== this.pacSourceMap.get(this.pacOriginal)
+    ) {
+      await this.parse(this.pacOriginal);
     }
+
     try {
       // 如果未提供host，从URL解析
       if (!host) {
@@ -135,6 +167,14 @@ class Pacparser {
     } catch (error) {
       throw new Error(`Failed to call FindProxyForURL: ${error.message}`);
     }
+  }
+
+  public cleanup() {
+    this.sandbox = null;
+    this.context = null;
+    this.pacString = null;
+    this.pacOriginal = null;
+    this.pacSourceMap.clear();
   }
 }
 

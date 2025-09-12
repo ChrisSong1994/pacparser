@@ -22,6 +22,7 @@ function FindProxyForURL(url, host) {
 
 export const demo3 = `
 function FindProxyForURL(url, host) {
+console.log("host: " + host);
   if (
     isPlainHostName(host) ||
     dnsDomainIs(host, ".mydomain.com") ||

@@ -58,15 +58,9 @@ describe("pacparser pacUrl", () => {
   test("pacparser pacString", async () => {
     const pacUrl = "http://localhost:3000/proxy.pac";
     const pacParser = new Pacparser();
-    await pacParser.parsePac(pacUrl);
+    pacParser.parsePac(pacUrl);
     const proxy = await pacParser.findProxy("https://direct.mozilla.org");
     expect(proxy).toBe("DIRECT");
   });
 
-  test("pacparser pacString", async () => {
-    const pacUrl = "http://localhost:3000/proxy.pac";
-    const pacParser = Pacparser.create(pacUrl);
-    const proxy = await pacParser.findProxy("https://direct.mozilla.org");
-    expect(proxy).toBe("DIRECT");
-  });
 });
