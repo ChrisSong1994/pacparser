@@ -57,7 +57,9 @@ export async function loadCli() {
             process.exit(1);
           }
           const result = func(...(options?.input ?? []));
-          console.log(result);
+          if (result) {
+            console.log(result);
+          }
         } catch (e) {
           console.error(e);
         } finally {
