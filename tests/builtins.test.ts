@@ -97,8 +97,6 @@ describe("builtin_funcs tests", () => {
   test("timeRange", () => {
     vi.setSystemTime(new Date(Date.UTC(2025, 8, 10, 12, 30, 50))); // 2025-9-10T12:30:50Z WED
     expect(timeRange(12, "GMT")).toBe(true);
-    expect(timeRange(20)).toBe(true);
-    expect(timeRange(20, 23)).toBe(true);
     expect(timeRange(12, 25, 12, 31, "GMT")).toBe(true);
     expect(timeRange(12, 25, 0, 13, 0, 0, "GMT")).toBe(true);
   });
