@@ -1,0 +1,53 @@
+# 工作流名称（可自定义）
+name: CI & Test Coverage (Codecov)
+
+# 触发条件：推送代码到 main 分支、或创建 Pull Request 时
+on:
+  push:
+    branches: [main] 
+  pull_request:
+    branches: [main]
+
+# 定义任务（单任务示例，复杂项目可拆分多任务）
+jobs:
+  test-and-coverage:
+    # 运行环境（可选：ubuntu-latest、windows-latest、macos-latest）
+    runs-on: ubuntu-latest
+
+    # 矩阵配置：支持多 Node.js 版本测试（可选）
+    strategy:
+      matrix:
+        node-version: [ 20.x,22.x] # 选择项目支持的 Node 版本
+
+    steps:
+      # 步骤 0：拉取 GitHub 仓库代码
+      - name: Checkout repository code
+        uses: actions/checkout@v4 # 官方 Action，拉取代码
+
+      # 步骤 1：安装 pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      # 步骤 2：设置 Node.js 环境（匹配矩阵中的版本）
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4 # 官方 Action，配置 Node 环境
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm" # 缓存 npm 依赖，加速后续构建（可选但推荐）
+
+      # 步骤 3：安装项目依赖
+      - name: Install project dependencies
+        run:  pnpm install  
+
+      # 步骤 4：运行测试并生成覆盖率报告
+      - name: Run tests and generate coverage report
+        run: npm run coverage
+
+      # 步骤 5：上传覆盖率报告到 Codecov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5 # Codecov 官方 Action，上传报告
+        with:
+          # 1. 私有仓库必需：Codecov 仓库 Token（公开仓库可选，建议配置）
+          token: ${{ secrets.CODECOV_TOKEN }}
