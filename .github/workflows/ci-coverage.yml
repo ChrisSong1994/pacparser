@@ -17,7 +17,7 @@ jobs:
     # 矩阵配置：支持多 Node.js 版本测试（可选）
     strategy:
       matrix:
-        node-version: [ 20.x,22.x] # 选择项目支持的 Node 版本
+        node-version: [22.x] # 选择项目支持的 Node 版本
 
     steps:
       # 步骤 0：拉取 GitHub 仓库代码
@@ -27,8 +27,6 @@ jobs:
       # 步骤 1：安装 pnpm
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       # 步骤 2：设置 Node.js 环境（匹配矩阵中的版本）
       - name: Set up Node.js ${{ matrix.node-version }}
