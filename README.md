@@ -1,4 +1,6 @@
-<h1 style="color: #0969da;">Pacparser</h1>
+<a href="https://chrissong1994.github.io/pacparser/"><h1>Pacparser</h1></a>
+
+[![codecov](https://codecov.io/github/ChrisSong1994/pacparser/graph/badge.svg?token=XN74UW2S52)](https://codecov.io/github/ChrisSong1994/pacparser)
 
 A library to parse proxy auto-config (PAC) files in Node.js.
 
@@ -51,7 +53,7 @@ await pacParser.findProxy("https://direct.mozilla.org"); // returns "DIRECT"
 
 You can use pacparser as a cli tool to parse pac file.
 
-```bash 
+```bash
 pacparser exec --pac './proxy.pac' --findproxy https://www.google.com # DIRECT
 # Or use shortcut command
 pap exec -p './proxy.pac' -f https://www.google.com # DIRECT

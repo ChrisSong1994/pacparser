@@ -17,7 +17,7 @@ export async function loadCli() {
     .version(pkg.version, "-v, --version", "output the version number");
 
   const execCmd = program.command("exec").description("execute parse pac file");
-  const buildinCmd = program.command("builtin").description("builtin functions");
+  const builtinCmd = program.command("builtin").description("builtin functions");
 
   execCmd
     .requiredOption("-p, --pac <pac>", "pac file path or pac code")
@@ -36,22 +36,36 @@ export async function loadCli() {
       console.log(result);
     });
 
-  buildinCmd
-    .requiredOption("-f, --function <function>", "builtin function")
+  builtinCmd
+    .option("-f, --function <function>", "builtin function")
     .option("-i, --input <input>", "function input", (value) => value.split(","))
+    .option("-l, --list", "list all builtin functions")
     .action(async (options) => {
-      if (!options.function) {
-        console.error("function is required");
-        process.exit(1);
+      if (options.list) {
+        console.log(Object.keys(builtins));
+        process.exit(0);
       }
-      const func = builtins[options.function];
-      if (!func) {
-        console.error("function is not exist");
-        process.exit(1);
+      if (options.function) {
+        const func = builtins[options.function];
+        if (!func) {
+          console.error("function is not exist");
+          process.exit(1);
+        }
+        try {
+          if (func.length !== (options?.input?.length ?? 0)) {
+            console.error("input length is not match");
+            process.exit(1);
+          }
+          const result = func(...(options?.input ?? []));
+          if (result) {
+            console.log(result);
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          process.exit(0);
+        }
       }
-
-      const result = func(...(options?.input ?? []));
-      console.log(result);
     });
 
   program.parse(process.argv);

@@ -1,6 +1,6 @@
 {
   "name": "pacparser",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "keywords": [
     "pac",
     "pacparser",
@@ -38,6 +38,7 @@
     "type": "git",
     "url": "git@github.com:ChrisSong1994/pacparser.git"
   },
+  "homepage": "https://chrissong1994.github.io/pacparser",
   "devDependencies": {
     "@types/node": "^24.3.1",
     "@vitest/coverage-v8": "3.2.4",
@@ -50,7 +51,7 @@
   },
   "dependencies": {
     "commander": "^14.0.0",
-    "deasync": "^0.1.30"
+    "dns-lookup-sync": "^1.0.0"
   },
   "license": "MIT",
   "packageManager": "pnpm@10.12.3"
