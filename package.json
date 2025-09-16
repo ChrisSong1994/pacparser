@@ -1,6 +1,6 @@
 {
   "name": "pacparser",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "keywords": [
     "pac",
     "pacparser",
@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "commander": "^14.0.0",
-    "deasync": "^0.1.30"
+    "dns-lookup-sync": "^1.0.0"
   },
   "license": "MIT",
   "packageManager": "pnpm@10.12.3"

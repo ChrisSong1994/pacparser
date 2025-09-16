@@ -1,11 +1,6 @@
-import dns from "dns";
 import fs from "node:fs/promises";
-import deasync from "deasync";
 import { GMT } from "./types";
 import { IP_REGEXP } from "./constants";
-
-export const lookupSync = deasync(dns.lookup);
-
 export function isValidIpAddress(ip: string) {
   const matches = IP_REGEXP.exec(ip);
   if (matches == null) {
