@@ -1,6 +1,6 @@
 <a href="https://chrissong1994.github.io/pacparser/"><h1>Pacparser</h1></a>
 
-[![codecov](https://codecov.io/github/ChrisSong1994/pacparser/graph/badge.svg?token=XN74UW2S52)](https://codecov.io/github/ChrisSong1994/pacparser)
+[![codecov](https://codecov.io/github/ChrisSong1994/pacparser/graph/badge.svg?token=XN74UW2S52)](https://codecov.io/github/ChrisSong1994/pacparser) ![NPM Version](https://img.shields.io/npm/v/pacparser)
 
 A library to parse proxy auto-config (PAC) files in Node.js.
 
